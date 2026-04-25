@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Plane, Hotel, UtensilsCrossed, ShoppingCart, Fuel, Sparkles, Calendar, TrendingUp, AlertCircle, Check, X, ChevronRight, CreditCard, Award, Clock, Target, Compass, Flame, BookOpen } from "lucide-react";
+import { Plane, Hotel, UtensilsCrossed, ShoppingCart, Fuel, Sparkles, Calendar, TrendingUp, AlertCircle, Check, X, ChevronRight, CreditCard, Award, Clock, Target, Compass, Flame, BookOpen, Map, Lightbulb } from "lucide-react";
 
 // ========== STATIC DATA ==========
 const CARDS = [
@@ -244,6 +244,439 @@ const POINT_VALUES = {
   "Bilt": 0.02,
 };
 
+const PLAYS = [
+  {
+    id: "japan-biz",
+    goal: "Japan in Business Class",
+    subtitle: "Round-trip ANA or JAL — $0 out of pocket",
+    difficulty: "Intermediate",
+    timeframe: "3–6 months",
+    totalValue: "$6,000–$10,000 in flights",
+    color: "#1a4480",
+    cards: ["csp", "ink", "amex-gold"],
+    steps: [
+      {
+        n: 1,
+        headline: "Chase Sapphire Preferred 먼저 신청",
+        detail: "Chase 5/24 룰 때문에 Chase 카드를 제일 먼저 받아야 함. CSP는 75k UR 보너스로 기본 재료. 3개월 안에 $5,000 사용.",
+        card: "csp",
+        action: "Apply at chase.com",
+      },
+      {
+        n: 2,
+        headline: "Min Spend $5,000 채우기",
+        detail: "자연스럽게: 식료품(3x), 다이닝(3x), 스트리밍(3x). 부족하면 payUSAtax.com으로 세금 납부 (수수료 1.85% < 포인트 가치), 또는 보험 선납.",
+        card: null,
+        action: "Route all spend here for 3 months",
+      },
+      {
+        n: 3,
+        headline: "Ink Business Preferred 추가 (사이드 비즈니스 있으면)",
+        detail: "프리랜서, 이베이 판매, 컨설팅 등 소득 있으면 비즈 카드 신청 가능. 5/24에 안 걸림. 100k UR 추가로 총 175k UR.",
+        card: "ink",
+        action: "Does NOT count toward 5/24",
+      },
+      {
+        n: 4,
+        headline: "Chase UR → ANA 1:1 트랜스퍼",
+        detail: "Chase 앱 → Transfer Points → ANA Mileage Club. 왕복 비즈니스 클래스: 서부 출발 88k, 동부 출발 95k 마일 + 약 $200 세금.",
+        card: null,
+        action: "Log in → Transfer Points → ANA",
+      },
+      {
+        n: 5,
+        headline: "ANA 'The Room' 비즈니스 예약",
+        detail: "ana.co.jp에서 직접 예약. 왕복 88,000 마일 + $200 세금 = 현금 환산 $6,000–$10,000짜리 좌석. 11개월 전부터 예약 오픈.",
+        card: null,
+        action: "Book at ana.co.jp",
+      },
+    ],
+  },
+  {
+    id: "starter",
+    goal: "First-Timer Starter Pack",
+    subtitle: "처음 시작하는 사람을 위한 최적 시퀀스",
+    difficulty: "Beginner",
+    timeframe: "1–4 months",
+    totalValue: "$2,500+ in travel",
+    color: "#2d5a3d",
+    cards: ["csp", "amex-gold"],
+    steps: [
+      {
+        n: 1,
+        headline: "CSP로 시작 — Chase 카드는 무조건 먼저",
+        detail: "5/24 룰 때문에 Chase 카드는 총 5장 안에 받아야 함. 다른 카드 먼저 받으면 막힘. CSP가 첫 카드로 최적: 75k 보너스, 해외결제 수수료 없음, 강력한 트랜스퍼 파트너.",
+        card: "csp",
+        action: "Start here — non-negotiable",
+      },
+      {
+        n: 2,
+        headline: "3개월 안에 $5,000 사용",
+        detail: "모든 식비, 배달앱, 구독 서비스를 CSP로. 부족하면 배우자/파트너를 AU(Authorized User)로 추가 — 그들 사용금액도 합산됨.",
+        card: null,
+        action: "Add partner as Authorized User",
+      },
+      {
+        n: 3,
+        headline: "90일 후 Amex Gold 신청",
+        detail: "이제 Chase 생태계를 잠깐 벗어남. Amex Gold는 다이닝·마트 4x로 일상 지출 최강. 100k 보너스 (6개월/$6,000). Amex 평생 1회 룰이 있으니 타이밍 중요.",
+        card: "amex-gold",
+        action: "Wait 90 days between apps",
+      },
+      {
+        n: 4,
+        headline: "카테고리별 카드 분리",
+        detail: "식당·마트 → Amex Gold (4x). 여행·그 외 → CSP (2x). 절대 1x짜리 카드 쓰지 말 것. 이 두 장으로 평균 3x+ 적립.",
+        card: null,
+        action: "Never use a 1x card again",
+      },
+      {
+        n: 5,
+        headline: "첫 번째 무료 여행: UR → Hyatt",
+        detail: "75,000 UR = Park Hyatt 2박 (1박 현금가 $400–800). Chase → Hyatt 1:1 트랜스퍼. 포인트의 가치를 피부로 느끼는 첫 경험.",
+        card: null,
+        action: "Chase → Hyatt 1:1 transfer",
+      },
+    ],
+  },
+  {
+    id: "luxury-hotel",
+    goal: "럭셔리 호텔 무료 숙박",
+    subtitle: "Park Hyatt, Conrad, Marriott — 현금 $0",
+    difficulty: "Beginner",
+    timeframe: "3–6 months",
+    totalValue: "$400–$1,200 per night",
+    color: "#4a2d2d",
+    cards: ["csp", "amex-gold", "hilton-aspire"],
+    steps: [
+      {
+        n: 1,
+        headline: "Hyatt 狙うなら: CSP → Hyatt 트랜스퍼",
+        detail: "Chase UR → World of Hyatt 1:1이 호텔 트랜스퍼 중 최고의 가치. 75k UR = Park Hyatt Tokyo 2박 (1박 $700+). 포인트 게임에서 최고의 스윗스팟.",
+        card: "csp",
+        action: "Transfer to Hyatt 1:1",
+      },
+      {
+        n: 2,
+        headline: "Hilton 狙うなら: Aspire 카드로 자동 무료 숙박",
+        detail: "Hilton Aspire는 연 1회 무료 주말 숙박권 자동 제공 ($30k 사용 시 추가 1회). Diamond 상태 자동 부여 = 무료 조식 + 업그레이드. 175k 보너스 = 추가 2–3박.",
+        card: "hilton-aspire",
+        action: "Free night cert auto-issued yearly",
+      },
+      {
+        n: 3,
+        headline: "비수기·평일 예약으로 포인트 30% 절감",
+        detail: "Hyatt의 Peak/Off-Peak 가격제: 같은 호텔이 비수기에 20–30% 적은 포인트. 주말보다 평일이 저렴. 날짜를 유연하게 잡으면 1박이 2박으로.",
+        card: null,
+        action: "Search off-peak dates first",
+      },
+      {
+        n: 4,
+        headline: "Diamond/Globalist 혜택 스택",
+        detail: "Hilton Aspire → Diamond 상태 자동: 무료 조식 + 공항 라운지 + 스위트 업그레이드. Conrad나 Waldorf에서 이 혜택 = 숙박가 대비 50–100% 추가 가치.",
+        card: null,
+        action: "Stack status with free night certs",
+      },
+      {
+        n: 5,
+        headline: "Marriott는 Boundless 카드로 Free Night Awards",
+        detail: "Marriott Boundless: 연 1회 35k 포인트 무료 숙박권. 유럽 Marriott Category 4–5 호텔 (1박 현금 $250–400)에 딱 맞음.",
+        card: "marriott-bonvoy",
+        action: "35k free night cert yearly",
+      },
+    ],
+  },
+  {
+    id: "everyday-max",
+    goal: "일상 지출 완전 최적화",
+    subtitle: "매달 쓰는 돈으로 연간 $2,000+ 적립",
+    difficulty: "Beginner",
+    timeframe: "Ongoing",
+    totalValue: "$1,500–$3,000/yr",
+    color: "#8a6f3a",
+    cards: ["amex-gold", "bilt", "csp", "citi-strata"],
+    steps: [
+      {
+        n: 1,
+        headline: "Amex Gold: 식당·마트 4x",
+        detail: "모든 음식 관련 지출을 여기로. 외식, 배달앱, 미국 마트 전부 4x MR. 식비 $1,500/월 기준 연간 72,000 MR = 약 $1,440 가치.",
+        card: "amex-gold",
+        action: "Every restaurant & grocery → Gold",
+      },
+      {
+        n: 2,
+        headline: "Bilt: 월세 1x (수수료 0)",
+        detail: "월세를 포인트로 전환하는 유일한 카드. $2,500 월세 기준 연 30,000 Bilt 포인트 = $600. 매월 1일 'Rent Day'는 모든 구매 2x.",
+        card: "bilt",
+        action: "Pay rent on the 1st for 2x bonus",
+      },
+      {
+        n: 3,
+        headline: "CSP: 여행·그 외 모든 지출 2x",
+        detail: "항공, 호텔, Lyft, DoorDash 등 여행 관련은 CSP로. 식비 제외한 나머지 지출의 캐치올 카드. Chase Travel 포털 사용 시 5x.",
+        card: "csp",
+        action: "All travel spend → CSP",
+      },
+      {
+        n: 4,
+        headline: "Citi Strata: 주유·마트 백업 (3x)",
+        detail: "Visa/Amex 안 받는 곳, 또는 주유·마트 Mastercard 필요 시. Citi Travel 포털 이용 시 호텔 10x. 연회비 $95 치고 범용성 높음.",
+        card: "citi-strata",
+        action: "Backup for gas + Mastercard merchants",
+      },
+      {
+        n: 5,
+        headline: "절대 1x 카드 쓰지 말 것",
+        detail: "2% 캐시백 카드를 3x–4x 포인트 카드 대신 쓰면 달러당 1–2¢ 손실. 이 스택 평균 3x+ = 연 $3,000 지출마다 $60–90 추가 가치.",
+        card: null,
+        action: "Average 3x+ across all spend",
+      },
+    ],
+  },
+  {
+    id: "business-stack",
+    goal: "비즈니스 여행자 스택",
+    subtitle: "라운지 + 크레딧 + 300k 보너스",
+    difficulty: "Advanced",
+    timeframe: "6–12 months",
+    totalValue: "$8,000+ first year",
+    color: "#3a3a2d",
+    cards: ["amex-biz-plat", "ink", "amex-plat"],
+    steps: [
+      {
+        n: 1,
+        headline: "Amex Business Platinum 먼저",
+        detail: "300,000 MR after $20,000/3개월. 많아 보이지만 비즈니스 비용(외주, 소프트웨어, 재고, 광고비)이면 충분. 포인트 가치 $6,000+.",
+        card: "amex-biz-plat",
+        action: "Biggest SUB in the game right now",
+      },
+      {
+        n: 2,
+        headline: "Centurion + Priority Pass 라운지 활성화",
+        detail: "Amex Biz Plat = Priority Pass (게스트 10명 무료), Centurion Lounge, Delta Sky Club (Delta 탑승 시), Global Lounge Collection. 월 1회 이상 출장이면 연 $500+ 가치.",
+        card: null,
+        action: "Activate Priority Pass immediately",
+      },
+      {
+        n: 3,
+        headline: "Ink Business Preferred로 비즈니스 지출 3x",
+        detail: "인터넷, 전화, 광고(Google/Meta), 배송비 3x (연 $150k 한도). 디지털 마케팅 비용이 크면 이 카드만으로도 연간 수만 포인트. 100k UR 보너스 추가.",
+        card: "ink",
+        action: "3x on Google Ads, internet, shipping",
+      },
+      {
+        n: 4,
+        headline: "Amex Plat 크레딧 최대 활용",
+        detail: "$200 항공 크레딧 + $200 호텔 크레딧 + $300 다이닝 크레딧 = $700. 연회비 $895 중 $700 상쇄. 사실상 net $195짜리 카드.",
+        card: "amex-plat",
+        action: "Set credits on day 1 — don't forget",
+      },
+      {
+        n: 5,
+        headline: "300k MR → Singapore Airlines Suites",
+        detail: "Amex MR → Singapore KrisFlyer 1:1. Singapore First Class (Suites) 편도 일본/동남아: 약 100k 마일. 현금가 $10,000–$20,000. 세계 최고 First Class 경험.",
+        card: null,
+        action: "Amex → Singapore 1:1 → Suites",
+      },
+    ],
+  },
+];
+
+const CARD_GUIDES = {
+  csp: {
+    name: "Chase Sapphire Preferred",
+    color: "#1a4480",
+    steps: [
+      "chase.com에서 신청 — 즉시 승인 또는 수일 내 결정",
+      "카드 도착 즉시 자동이체 설정 후 모든 식비·여행·스트리밍 라우팅",
+      "$5,000/3개월: 보험 선납, 세금(payUSAtax.com), 유틸리티 선납으로 채우기",
+      "Chase Travel 포털로 항공·호텔 예약 시 5x (SUB 기간 중 특히 적극 활용)",
+      "SUB 후 → Chase UR을 Hyatt 1:1 트랜스퍼 (최고 스윗스팟)",
+    ],
+    proTips: [
+      "배우자/파트너를 Authorized User로 추가 — 그들 지출도 min spend 합산",
+      "DashPass 멤버십 포함 → DoorDash 5x + 무료 배달",
+      "Lyft 탑승 10x (분기별 확인 필요)",
+    ],
+  },
+  "amex-gold": {
+    name: "Amex Gold",
+    color: "#8a6f3a",
+    steps: [
+      "신청 즉시 4x 카테고리 확인: 모든 레스토랑 + 미국 마트 자동 적용",
+      "모든 음식 관련 지출을 여기로 집중 — 다른 카드 절대 쓰지 말 것",
+      "$6,000/6개월: 식비, 배달앱, 음식점으로 자연스럽게 달성",
+      "$10/월 다이닝 크레딧 사용 (Grubhub, Cheesecake Factory 등) — 월초 리마인더 설정",
+      "MR → Hyatt 1:1 또는 ANA 1:1로 트랜스퍼해 최대 가치 실현",
+    ],
+    proTips: [
+      "Walmart+ 구독 = 마트로 인식 → 4x 적립",
+      "$10/월 Uber Cash 자동 제공 (Uber 앱에 카드 등록 필수)",
+      "Whole Foods, Trader Joe's, 대형 체인 전부 4x",
+    ],
+  },
+  "amex-biz-plat": {
+    name: "Amex Business Platinum",
+    color: "#3a3a2d",
+    steps: [
+      "비즈니스 등록 없어도 신청 가능 — 프리랜서, 1인 사업자, 부업 모두 해당",
+      "$20,000/3개월: 비즈니스 경비 선납, 외주 비용, 소프트웨어 연간 결제",
+      "Priority Pass 즉시 활성화 → 첫 출장부터 라운지 사용",
+      "연 $200 항공 크레딧: 카드 등록 후 1개 항공사 선택, 수하물·좌석 업그레이드에 사용",
+      "300k MR → Singapore Airlines → First Class Suites 예약 (최고 가치 환산)",
+    ],
+    proTips: [
+      "Adobe, Slack, AWS 등 소프트웨어 연간 결제로 min spend 쉽게 충족",
+      "항공 직구매 5x (여행사 통하면 1.5x로 감소)",
+      "35% Rebate: 특정 항공사 Business/First를 MR로 구매 시 35% 환급",
+    ],
+  },
+  bilt: {
+    name: "Bilt Blue",
+    color: "#1a1a1a",
+    steps: [
+      "Bilt 앱 다운로드 → 월세 납부 방식 설정 (집주인 계좌 직접 연동 또는 Bilt 포털)",
+      "포인트 적립 조건: 월 5회 이상 결제 필수 (월세 포함)",
+      "매월 1일 Rent Day: 그날 모든 결제 2x — 큰 지출은 1일로 몰기",
+      "Bilt 포인트 → Hyatt 1:1 트랜스퍼 (월세를 럭셔리 호텔로 변환)",
+      "더 높은 혜택 필요 시 Obsidian($95) 또는 Palladium($495) 업그레이드 고려",
+    ],
+    proTips: [
+      "Bilt → United, American Airlines, Hyatt 전부 1:1 트랜스퍼",
+      "연회비 $0 → 영구 보유 카드로 크레딧 히스토리 유지에 유리",
+      "Palladium 카드: 50k 보너스 + $300 Bilt Cash (연회비 $495 상쇄)",
+    ],
+  },
+  csp: {
+    name: "Chase Sapphire Preferred",
+    color: "#1a4480",
+    steps: [
+      "chase.com에서 신청 — 즉시 승인 또는 수일 내 결정",
+      "카드 도착 즉시 자동이체 설정 후 모든 식비·여행·스트리밍 라우팅",
+      "$5,000/3개월: 보험 선납, 세금(payUSAtax.com), 유틸리티 선납으로 채우기",
+      "Chase Travel 포털로 항공·호텔 예약 시 5x (SUB 기간 중 특히 적극 활용)",
+      "SUB 후 → Chase UR을 Hyatt 1:1 트랜스퍼 (최고 스윗스팟)",
+    ],
+    proTips: [
+      "배우자/파트너를 Authorized User로 추가 — 그들 지출도 min spend 합산",
+      "DashPass 멤버십 포함 → DoorDash 5x + 무료 배달",
+      "Lyft 탑승 10x (분기별 확인 필요)",
+    ],
+  },
+  ink: {
+    name: "Ink Business Preferred",
+    color: "#2d5a3d",
+    steps: [
+      "소득이 있는 활동(프리랜서, 이베이, 컨설팅 등)으로 신청 — 사업자 등록 불필요",
+      "5/24에 카운트 안 됨 → Chase 개인 카드와 동시 진행 가능",
+      "3x 카테고리 집중: 인터넷, 전화, 배송비, Google/Meta 광고비 ($150k/년 한도)",
+      "$8,000/3개월: 비즈니스 소프트웨어 연간 결제, 사무용품, 통신비 선납",
+      "100k UR → ANA(일본행), Hyatt(호텔), 또는 Southwest(미국 내 저가 항공)로 트랜스퍼",
+    ],
+    proTips: [
+      "Chase.com에서 '비즈니스 신용카드'로 신청 → 개인 크레딧 점수 기반 심사",
+      "Slack, Zoom, AWS 등 SaaS 비용 → 3x 적립",
+      "CSP + Ink Preferred 조합이 US 포인트 게임의 기본 중 기본",
+    ],
+  },
+  "venture-x": {
+    name: "Capital One Venture X",
+    color: "#3d2d4a",
+    steps: [
+      "신청 전 최근 조회 수 최소화 — Capital One은 3개 신용국 전부 조회함",
+      "신청 시 기존 C1 카드 없는 게 유리 (개인 최대 2장)",
+      "$4,000/3개월: 일상 지출로 자연스럽게 달성 가능",
+      "$300 여행 크레딧 즉시 활성화 → Capital One Travel 포털에서 항공·호텔 예약",
+      "매년 10,000 마일 생일 보너스 → 카드 보유만으로 연 $200 가치",
+    ],
+    proTips: [
+      "Lounge Access: Capital One 라운지 + Priority Pass (게스트 2명 무료)",
+      "net 연회비: $395 - $300 크레딧 - $200 마일 보너스 = 사실상 $-105",
+      "C1 Miles → Avianca(저렴한 Star Alliance 항공권), Turkish, Air Canada로 트랜스퍼",
+    ],
+  },
+  "hilton-aspire": {
+    name: "Hilton Honors Aspire",
+    color: "#3a4a5a",
+    steps: [
+      "Amex 플랫폼 → 평생 1회 보너스 규칙 적용 (첫 신청인지 확인)",
+      "카드 발급 즉시 Diamond 상태 자동 부여 → Hilton 앱에서 확인",
+      "$4,000/3개월: 다이닝(7x), 여행(7x) 카테고리 집중 활용",
+      "연 무료 주말 숙박권 발급 확인 (발급 후 1년 내 사용)",
+      "Diamond 혜택 활용: 무료 조식, 라운지, 업그레이드 요청 (체크인 시 Globalist 언급)",
+    ],
+    proTips: [
+      "$30k 추가 사용 시 무료 숙박권 1장 추가 = 연 2장",
+      "Conrad, Waldorf Astoria에서 Diamond 무료 조식 = $50–100/박 절약",
+      "175k 보너스 시 복귀할 경우: 정기적으로 elevated 오퍼 모니터링",
+    ],
+  },
+  "citi-strata": {
+    name: "Citi Strata Premier",
+    color: "#2d4a4a",
+    steps: [
+      "48개월 룰 확인: 동일 제품군(ThankYou)에서 보너스 받거나 해지한 지 4년 지났는지",
+      "75k 보너스: $4,000/3개월 — 마트(3x), 주유(3x), 다이닝(3x)으로 쉽게 달성",
+      "Citi Travel 포털에서 호텔 예약 시 10x — SUB 기간 중 전략적 활용",
+      "ThankYou 포인트 → Choice Hotels 2:1 트랜스퍼 (유럽 Choice 호텔 4¢/pt 가치)",
+      "연 $100 호텔 크레딧 (Citi Travel 포털 $500+ 예약 시) 활용",
+    ],
+    proTips: [
+      "Citi TYP → Turkish Miles&Smiles 1:1 → United 항공권 7,500마일 편도 (국내선)",
+      "Mastercard라 Amex 안 받는 곳에서 유용한 백업 카드",
+      "주유 3x는 Citi TYP 중 드문 카테고리 — 기름값 많으면 메인 카드로 활용 가능",
+    ],
+  },
+  "alaska-summit": {
+    name: "Alaska Atmos Rewards Summit",
+    color: "#1a3a4a",
+    steps: [
+      "BoA 2/3/4 룰 체크: 2개월 내 2장, 12개월 내 3장, 24개월 내 4장 초과 금지",
+      "100k 마일 + 25k Global Companion Award: $6,500/3개월 목표",
+      "Alaska Airlines 직구매 3x, 여행 2x 집중",
+      "Global Companion Award로 동반자 비즈니스 클래스 티켓 할인 활용",
+      "Oneworld 파트너 항공사(British Airways, Cathay, Finnair)로 트랜스퍼 가능",
+    ],
+    proTips: [
+      "JAL First Class 하와이→도쿄 편도: 70k 마일 (현금가 $5,000+)",
+      "British Airways Avios → 단거리 American Airlines 항공권 (7,500 마일부터)",
+      "Alaska 자체 노선: Pacific Northwest, Hawaii, 멕시코 저렴한 스윗스팟 多",
+    ],
+  },
+  "marriott-bonvoy": {
+    name: "Marriott Bonvoy Boundless",
+    color: "#4a2d2d",
+    steps: [
+      "Chase 5/24 카운트됨 → Chase 카드 시퀀스 내에서 계획적으로 신청",
+      "3 Free Night Awards (최대 50k pts each): $3,000/3개월 후 발급",
+      "Marriott 앱에서 무료 숙박권 확인 → Category 4–5 호텔에 사용 (유럽, 아시아 추천)",
+      "연 $100 항공 구매 크레딧 활용 (2026년 신규 혜택)",
+      "연간 35k 무료 숙박권 자동 발급 (카드 보유 유지 시)",
+    ],
+    proTips: [
+      "Marriott Bonvoy → Hyatt 불가 but → 항공사 마일리지 전환 가능 (3:1 비율, 비효율)",
+      "Free Night Award는 Category 4–5에 사용할 때 최고 가치 ($250–400/박)",
+      "실버 엘리트 자동 부여 → 레이트 체크아웃, 포인트 보너스",
+    ],
+  },
+  "amex-plat": {
+    name: "Amex Platinum",
+    color: "#5a4a2d",
+    steps: [
+      "Pop-up 룰 확인 — 신청 전 incognito로 사전 체크 (팝업 뜨면 보너스 없음)",
+      "$12,000/6개월: 여행비, 세금, 보험, 렌트비 등 큰 지출 집중",
+      "항공 직구매 5x — 반드시 항공사 직접 예매 (여행사/OTA 제외)",
+      "첫 달: $200 항공 크레딧, $200 호텔 크레딧, $300 다이닝 크레딧 전부 설정",
+      "175k MR → ANA 비즈니스 클래스 왕복 또는 Singapore Suites 편도",
+    ],
+    proTips: [
+      "Centurion Lounge: 탑승일 해당 항공사 탑승권 있으면 무료 입장",
+      "Fine Hotels & Resorts: $200 크레딧 + 무료 조식 + 룸 업그레이드 + 레이트 체크아웃",
+      "Global Entry 크레딧 $100 (TSA PreCheck 포함) — 4년마다 갱신",
+    ],
+  },
+};
+
 const CATEGORY_META = {
   dining: { label: "Dining", icon: UtensilsCrossed },
   travel: { label: "Travel", icon: Plane },
@@ -281,6 +714,7 @@ const daysBetween = (a, b) => Math.ceil((new Date(b) - new Date(a)) / 86400000);
 function Header({ tab, setTab }) {
   const tabs = [
     { id: "discover", label: "Discover", icon: Compass },
+    { id: "guide", label: "Guide", icon: Map },
     { id: "tracker", label: "Tracker", icon: Calendar },
     { id: "rules", label: "Rules", icon: BookOpen },
     { id: "value", label: "Value", icon: TrendingUp },
@@ -941,6 +1375,255 @@ function ValueCalculator() {
   );
 }
 
+// ---------- GUIDE TAB ----------
+const DIFFICULTY_COLOR = {
+  Beginner: "text-green-400 border-green-400/30 bg-green-400/10",
+  Intermediate: "text-amber-300 border-amber-300/30 bg-amber-300/10",
+  Advanced: "text-red-400 border-red-400/30 bg-red-400/10",
+};
+
+function Playbook({ openCard }) {
+  const [activePlay, setActivePlay] = useState(null);
+  const [activeGuide, setActiveGuide] = useState(null);
+  const [view, setView] = useState("plays"); // "plays" | "cards"
+
+  return (
+    <div className="max-w-6xl mx-auto px-6 pb-20">
+      {/* Hero */}
+      <div className="mb-10 max-w-2xl">
+        <p className="text-xs uppercase tracking-[0.4em] text-amber-300/70 mb-3">Step-by-step playbook</p>
+        <h2 className="font-serif text-4xl text-stone-100 leading-tight mb-4">
+          목표를 정하면, <em className="text-amber-200">순서가 보입니다.</em>
+        </h2>
+        <p className="text-stone-400 font-light leading-relaxed text-sm">
+          카드를 고르는 것보다 어떤 순서로, 어떻게 사용하느냐가 포인트 게임의 핵심입니다. 목표별 전략과 카드별 실행 가이드를 아래에서 확인하세요.
+        </p>
+      </div>
+
+      {/* View toggle */}
+      <div className="flex gap-1 mb-10 border-b border-stone-800">
+        {[
+          { id: "plays", label: "§ I. 목표별 전략" },
+          { id: "cards", label: "§ II. 카드별 실행 가이드" },
+        ].map((v) => (
+          <button
+            key={v.id}
+            onClick={() => setView(v.id)}
+            className={`px-5 py-3 text-xs uppercase tracking-widest transition-colors border-b-2 -mb-[2px] ${
+              view === v.id
+                ? "text-amber-200 border-amber-300"
+                : "text-stone-500 hover:text-stone-300 border-transparent"
+            }`}
+          >
+            {v.label}
+          </button>
+        ))}
+      </div>
+
+      {/* § I. Strategy Plays */}
+      {view === "plays" && (
+        <div className="space-y-3">
+          {PLAYS.map((play) => {
+            const isOpen = activePlay === play.id;
+            return (
+              <div key={play.id} className="border border-stone-800 rounded-sm overflow-hidden">
+                {/* Play header */}
+                <button
+                  onClick={() => setActivePlay(isOpen ? null : play.id)}
+                  className={`w-full text-left p-6 flex items-center gap-6 transition-all group ${
+                    isOpen ? "bg-stone-900/60" : "bg-stone-900/20 hover:bg-stone-900/40"
+                  }`}
+                >
+                  <div
+                    className="w-1 self-stretch rounded-full flex-shrink-0"
+                    style={{ background: play.color }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1 flex-wrap">
+                      <span className={`text-[10px] uppercase tracking-widest px-2 py-0.5 rounded border ${DIFFICULTY_COLOR[play.difficulty]}`}>
+                        {play.difficulty}
+                      </span>
+                      <span className="text-[10px] text-stone-600 uppercase tracking-wider flex items-center gap-1">
+                        <Clock size={10} /> {play.timeframe}
+                      </span>
+                    </div>
+                    <h3 className="font-serif text-2xl text-stone-100 group-hover:text-amber-100 transition-colors">
+                      {play.goal}
+                    </h3>
+                    <p className="text-sm text-stone-500 italic mt-0.5">{play.subtitle}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-[10px] text-stone-600 uppercase tracking-wider mb-1">Value</p>
+                    <p className="font-serif text-lg text-amber-200">{play.totalValue}</p>
+                  </div>
+                  <ChevronRight
+                    size={18}
+                    className={`text-stone-600 flex-shrink-0 transition-transform ${isOpen ? "rotate-90 text-amber-300" : ""}`}
+                  />
+                </button>
+
+                {/* Steps */}
+                {isOpen && (
+                  <div className="border-t border-stone-800">
+                    {/* Related cards strip */}
+                    <div className="px-6 py-4 bg-stone-950/50 flex items-center gap-3 flex-wrap border-b border-stone-900">
+                      <span className="text-[10px] uppercase tracking-widest text-stone-600">필요한 카드</span>
+                      {play.cards.map((cid) => {
+                        const card = CARDS.find((c) => c.id === cid);
+                        if (!card) return null;
+                        return (
+                          <button
+                            key={cid}
+                            onClick={() => openCard(card)}
+                            className="flex items-center gap-2 px-3 py-1 border border-stone-700 hover:border-amber-500 text-stone-300 hover:text-amber-200 text-xs transition-all"
+                          >
+                            <span className="w-2 h-2 rounded-full" style={{ background: card.color }} />
+                            {card.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Numbered steps */}
+                    <div className="divide-y divide-stone-900">
+                      {play.steps.map((step) => {
+                        const linkedCard = step.card ? CARDS.find((c) => c.id === step.card) : null;
+                        return (
+                          <div key={step.n} className="flex gap-6 p-6 hover:bg-stone-900/20 transition-colors">
+                            <div className="flex-shrink-0 w-10 h-10 border border-stone-700 flex items-center justify-center">
+                              <span className="font-serif text-2xl text-amber-300/60">{step.n}</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-serif text-lg text-stone-100 mb-2">{step.headline}</h4>
+                              <p className="text-stone-400 text-sm leading-relaxed">{step.detail}</p>
+                              {step.action && (
+                                <p className="mt-2 text-[10px] uppercase tracking-widest text-amber-400/70 flex items-center gap-1">
+                                  <ChevronRight size={10} /> {step.action}
+                                </p>
+                              )}
+                            </div>
+                            {linkedCard && (
+                              <div
+                                className="flex-shrink-0 w-2 self-stretch rounded-full"
+                                style={{ background: linkedCard.color }}
+                                title={linkedCard.name}
+                              />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* § II. Card-by-card earning guides */}
+      {view === "cards" && (
+        <div className="grid md:grid-cols-12 gap-8">
+          {/* Card list */}
+          <div className="md:col-span-4 space-y-1">
+            {Object.entries(CARD_GUIDES).map(([id, guide]) => {
+              const isActive = activeGuide === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => setActiveGuide(isActive ? null : id)}
+                  className={`w-full text-left px-4 py-3 flex items-center gap-3 border transition-all ${
+                    isActive
+                      ? "border-amber-700/50 bg-stone-900/60 text-amber-100"
+                      : "border-stone-800 bg-stone-900/20 hover:border-stone-700 text-stone-300"
+                  }`}
+                >
+                  <span
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ background: guide.color }}
+                  />
+                  <span className="font-serif text-base leading-tight">{guide.name}</span>
+                  <ChevronRight
+                    size={14}
+                    className={`ml-auto flex-shrink-0 transition-transform text-stone-600 ${isActive ? "rotate-90 text-amber-300" : ""}`}
+                  />
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Guide detail */}
+          <div className="md:col-span-8">
+            {!activeGuide ? (
+              <div className="h-full flex items-center justify-center border border-dashed border-stone-800 min-h-64">
+                <div className="text-center">
+                  <Lightbulb className="mx-auto text-stone-700 mb-3" size={28} />
+                  <p className="text-stone-500 text-sm">왼쪽에서 카드를 선택하세요</p>
+                </div>
+              </div>
+            ) : (
+              (() => {
+                const guide = CARD_GUIDES[activeGuide];
+                const card = CARDS.find((c) => c.id === activeGuide);
+                return (
+                  <div
+                    className="border border-stone-800 rounded-sm overflow-hidden"
+                    style={{ background: `linear-gradient(180deg, ${guide.color}20 0%, transparent 30%)` }}
+                  >
+                    <div className="p-6 border-b border-stone-800">
+                      <p className="text-xs uppercase tracking-[0.3em] text-amber-300/70 mb-1">
+                        {card?.issuer} · Step-by-step
+                      </p>
+                      <h3 className="font-serif text-3xl text-stone-100">{guide.name}</h3>
+                    </div>
+
+                    <div className="p-6">
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-amber-300/70 mb-4">실행 순서</p>
+                      <ol className="space-y-4 mb-8">
+                        {guide.steps.map((step, i) => (
+                          <li key={i} className="flex gap-4">
+                            <span className="flex-shrink-0 w-6 h-6 border border-stone-700 flex items-center justify-center text-xs font-serif text-amber-300/70">
+                              {i + 1}
+                            </span>
+                            <p className="text-stone-300 text-sm leading-relaxed pt-0.5">{step}</p>
+                          </li>
+                        ))}
+                      </ol>
+
+                      <div className="border-t border-stone-800 pt-6">
+                        <p className="text-[10px] uppercase tracking-[0.3em] text-amber-300/70 mb-4 flex items-center gap-2">
+                          <Lightbulb size={12} /> Pro Tips
+                        </p>
+                        <ul className="space-y-3">
+                          {guide.proTips.map((tip, i) => (
+                            <li key={i} className="flex gap-3 text-stone-400 text-sm">
+                              <span className="text-amber-400/60 font-serif flex-shrink-0">·</span>
+                              {tip}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {card && (
+                        <button
+                          onClick={() => openCard(card)}
+                          className="mt-6 w-full py-3 border border-amber-400/40 text-amber-200 text-xs uppercase tracking-[0.3em] hover:bg-amber-400 hover:text-stone-950 transition-all"
+                        >
+                          카드 상세 보기 →
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function PointsAtlas() {
   const [tab, setTab] = useState("discover");
   const [selectedCard, setSelectedCard] = useState(null);
@@ -975,6 +1658,7 @@ export default function PointsAtlas() {
 
       <main>
         {tab === "discover" && <Discover openCard={setSelectedCard} />}
+        {tab === "guide" && <Playbook openCard={setSelectedCard} />}
         {tab === "tracker" && <Tracker tracked={tracked} setTracked={setTracked} />}
         {tab === "rules" && <Rules />}
         {tab === "value" && <ValueCalculator />}
