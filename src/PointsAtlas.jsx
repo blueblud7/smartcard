@@ -1382,10 +1382,127 @@ const DIFFICULTY_COLOR = {
   Advanced: "text-red-400 border-red-400/30 bg-red-400/10",
 };
 
+const SCORE_FACTORS = [
+  { label: "결제 이력", pct: 35, desc: "매달 제때 납부했는지. 단 한 번의 연체도 수년간 영향", color: "bg-amber-400" },
+  { label: "사용률 (Utilization)", pct: 30, desc: "한도 대비 얼마나 쓰는지. 10% 이하 유지가 핵심", color: "bg-amber-300" },
+  { label: "크레딧 기간", pct: 15, desc: "카드를 얼마나 오래 유지했는지. 오래된 카드는 절대 닫지 말 것", color: "bg-stone-400" },
+  { label: "크레딧 종류", pct: 10, desc: "카드, 자동차 론, 학자금 등 다양할수록 유리", color: "bg-stone-500" },
+  { label: "신규 조회 (Hard Pull)", pct: 10, desc: "카드 신청할 때마다 점수 하락. 한 번에 여러 장 금지", color: "bg-stone-600" },
+];
+
+const SCORE_MILESTONES = [
+  { range: "< 580", label: "No Credit / Poor", cards: "Secured Card 전용 (보증금 필요)", color: "text-red-400", bar: "bg-red-400/30", next: "Secured 카드로 6개월 이상 거래 이력 쌓기" },
+  { range: "580–669", label: "Fair", cards: "Store Card, Capital One Platinum", color: "text-orange-400", bar: "bg-orange-400/30", next: "사용률 낮추고 연체 없으면 3–6개월 안에 탈출" },
+  { range: "670–739", label: "Good", cards: "Chase Sapphire Preferred, Amex Gold 신청 가능", color: "text-amber-300", bar: "bg-amber-300/30", next: "5/24 관리하며 Chase 카드 우선 신청" },
+  { range: "740–799", label: "Very Good", cards: "프리미엄 카드 대부분 승인", color: "text-green-400", bar: "bg-green-400/30", next: "Amex Platinum, CSR 신청 타이밍" },
+  { range: "800+", label: "Exceptional", cards: "최고 조건, 거의 모든 카드 승인", color: "text-emerald-300", bar: "bg-emerald-300/30", next: "이 앱의 모든 카드 신청 가능" },
+];
+
+const STARTER_CARDS = [
+  {
+    name: "Discover it® Secured",
+    fee: "$0",
+    deposit: "$200+",
+    earn: "2% 주유·다이닝, 1% 기타",
+    highlight: "첫 1년 캐시백 100% 매칭 (사실상 첫해 더블)",
+    timeline: "6–8개월 후 Unsecured 전환 심사",
+    color: "#e87722",
+    why: "크레딧 없는 사람에게 가장 좋은 첫 카드. 보증금 돌려받음.",
+  },
+  {
+    name: "Capital One Platinum Secured",
+    fee: "$0",
+    deposit: "$49 / $99 / $200",
+    earn: "리워드 없음 (순수 크레딧 빌딩용)",
+    highlight: "최소 보증금 $49 — 업계 최저",
+    timeline: "6개월 후 자동 업그레이드 심사",
+    color: "#004977",
+    why: "보증금 부담이 최소. 빠른 한도 증가로 사용률 관리 유리.",
+  },
+  {
+    name: "Chase Freedom Rise℠",
+    fee: "$0",
+    deposit: "없음 (Chase 계좌 $250 이상 시 우선 승인)",
+    earn: "모든 구매 1.5% 캐시백",
+    highlight: "Chase 계좌 연동 시 크레딧 이력 없어도 승인 가능",
+    timeline: "12개월 후 Freedom Unlimited 업그레이드 가능",
+    color: "#1a4480",
+    why: "Chase 생태계 진입점. 나중에 UR 포인트 카드로 연결됨.",
+  },
+  {
+    name: "Citi® Secured Mastercard",
+    fee: "$0",
+    deposit: "$200–$2,500",
+    earn: "리워드 없음",
+    highlight: "보증금 한도 내에서 크레딧 한도 설정 가능",
+    timeline: "18개월 후 Unsecured 전환 검토",
+    color: "#2d4a4a",
+    why: "Citi 생태계 입문용. 나중에 Strata Premier로 연결 가능.",
+  },
+];
+
+const CREDIT_TIMELINE = [
+  {
+    month: "Month 0–1",
+    phase: "기반 만들기",
+    color: "#5a4a2d",
+    actions: [
+      "Discover it Secured 또는 Capital One Platinum Secured 신청",
+      "Chase 계좌 개설 ($250 이상 예치) — Freedom Rise 승인률 높아짐",
+      "신청 카드 도착 즉시 자동이체 설정 (연체 방지)",
+      "Credit Karma 또는 Chase Credit Journey 무료 모니터링 시작",
+    ],
+  },
+  {
+    month: "Month 3–6",
+    phase: "사용률 최적화",
+    color: "#8a6f3a",
+    actions: [
+      "잔액을 한도의 10% 이하로 유지 (예: $500 한도면 $50 이하 사용)",
+      "매달 Statement Balance 전액 납부 (이자 절대 내지 말 것)",
+      "한도 증가 요청 — 사용률이 자동으로 낮아짐",
+      "두 번째 카드 추가 고려 (Credit Mix 향상)",
+    ],
+  },
+  {
+    month: "Month 6–12",
+    phase: "점수 680+ 목표",
+    color: "#2d5a3d",
+    actions: [
+      "Secured → Unsecured 전환 요청 (보증금 돌려받음)",
+      "점수 670 넘으면 Chase Freedom Unlimited 또는 Flex 신청 가능",
+      "기존 카드 절대 닫지 말 것 — 기간과 한도 유지가 핵심",
+      "신규 카드 신청 간격 3개월 이상 유지",
+    ],
+  },
+  {
+    month: "Month 12–18",
+    phase: "첫 리워드 카드",
+    color: "#1a4480",
+    actions: [
+      "점수 700+ 달성 시 Chase Sapphire Preferred 신청 (75k 보너스)",
+      "5/24 카운트 관리 시작 — 지금까지 몇 장 받았는지 체크",
+      "CSP 승인 후 Discover/Cap One Secured는 유지 (기간 보존)",
+      "이제 이 앱의 Discover 탭으로 이동해 다음 카드 계획 수립",
+    ],
+  },
+  {
+    month: "Month 18–24+",
+    phase: "Full 포인트 게임",
+    color: "#3d2d4a",
+    actions: [
+      "Amex Gold 추가 (다이닝·마트 4x) — 5/24 카운트 안 됨",
+      "Ink Business Preferred (사이드 비즈니스 있으면) — 100k UR",
+      "점수 750+ 유지하며 매 3–6개월마다 전략적으로 카드 추가",
+      "Guide 탭의 전략 플레이로 일본 비즈니스 클래스 계획 시작",
+    ],
+  },
+];
+
 function Playbook({ openCard }) {
   const [activePlay, setActivePlay] = useState(null);
   const [activeGuide, setActiveGuide] = useState(null);
-  const [view, setView] = useState("plays"); // "plays" | "cards"
+  const [view, setView] = useState("start"); // "start" | "plays" | "cards"
 
   return (
     <div className="max-w-6xl mx-auto px-6 pb-20">
@@ -1396,20 +1513,21 @@ function Playbook({ openCard }) {
           목표를 정하면, <em className="text-amber-200">순서가 보입니다.</em>
         </h2>
         <p className="text-stone-400 font-light leading-relaxed text-sm">
-          카드를 고르는 것보다 어떤 순서로, 어떻게 사용하느냐가 포인트 게임의 핵심입니다. 목표별 전략과 카드별 실행 가이드를 아래에서 확인하세요.
+          크레딧 제로에서 시작해 일본 비즈니스 클래스까지. 단계별로 따라가기만 하면 됩니다.
         </p>
       </div>
 
       {/* View toggle */}
-      <div className="flex gap-1 mb-10 border-b border-stone-800">
+      <div className="flex gap-1 mb-10 border-b border-stone-800 overflow-x-auto">
         {[
+          { id: "start", label: "§ 0. 처음 시작하기" },
           { id: "plays", label: "§ I. 목표별 전략" },
-          { id: "cards", label: "§ II. 카드별 실행 가이드" },
+          { id: "cards", label: "§ II. 카드별 가이드" },
         ].map((v) => (
           <button
             key={v.id}
             onClick={() => setView(v.id)}
-            className={`px-5 py-3 text-xs uppercase tracking-widest transition-colors border-b-2 -mb-[2px] ${
+            className={`px-5 py-3 text-xs uppercase tracking-widest transition-colors border-b-2 -mb-[2px] whitespace-nowrap ${
               view === v.id
                 ? "text-amber-200 border-amber-300"
                 : "text-stone-500 hover:text-stone-300 border-transparent"
@@ -1419,6 +1537,165 @@ function Playbook({ openCard }) {
           </button>
         ))}
       </div>
+
+      {/* § 0. Credit From Zero */}
+      {view === "start" && (
+        <div className="space-y-16">
+
+          {/* Credit Score 구성 */}
+          <section>
+            <div className="flex items-baseline gap-4 mb-6">
+              <span className="text-amber-300 font-serif text-xl italic">01</span>
+              <h3 className="text-stone-200 text-lg uppercase tracking-[0.3em] font-light">크레딧 스코어란</h3>
+            </div>
+            <div className="grid md:grid-cols-12 gap-8">
+              <div className="md:col-span-7 space-y-3">
+                {SCORE_FACTORS.map((f) => (
+                  <div key={f.label}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-stone-300 text-sm">{f.label}</span>
+                      <span className="font-serif text-xl text-amber-200">{f.pct}%</span>
+                    </div>
+                    <div className="h-2 bg-stone-900 mb-1">
+                      <div className={`h-full ${f.color} transition-all`} style={{ width: `${f.pct * 2.86}%` }} />
+                    </div>
+                    <p className="text-xs text-stone-600">{f.desc}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="md:col-span-5 bg-stone-900/40 border border-stone-800 p-6">
+                <p className="text-xs uppercase tracking-[0.3em] text-amber-300/70 mb-4">핵심 3원칙</p>
+                <ol className="space-y-4">
+                  {[
+                    { n: "01", rule: "절대 연체하지 말 것", sub: "자동이체 설정이 최선" },
+                    { n: "02", rule: "한도의 10% 이하만 사용", sub: "사용 후 바로 갚아도 됨" },
+                    { n: "03", rule: "카드 닫지 말 것", sub: "오래 유지할수록 유리" },
+                  ].map((r) => (
+                    <li key={r.n} className="flex gap-4">
+                      <span className="font-serif text-2xl text-amber-300/40 flex-shrink-0">{r.n}</span>
+                      <div>
+                        <p className="text-stone-200 font-serif text-lg leading-tight">{r.rule}</p>
+                        <p className="text-stone-500 text-xs mt-0.5">{r.sub}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          </section>
+
+          {/* Score Milestones */}
+          <section>
+            <div className="flex items-baseline gap-4 mb-6">
+              <span className="text-amber-300 font-serif text-xl italic">02</span>
+              <h3 className="text-stone-200 text-lg uppercase tracking-[0.3em] font-light">점수별 신청 가능 카드</h3>
+            </div>
+            <div className="space-y-2">
+              {SCORE_MILESTONES.map((m) => (
+                <div key={m.range} className={`p-5 border border-stone-800 ${m.bar} rounded-sm`}>
+                  <div className="grid md:grid-cols-12 gap-4 items-start">
+                    <div className="md:col-span-3">
+                      <p className={`font-serif text-2xl ${m.color}`}>{m.range}</p>
+                      <p className="text-xs text-stone-500 uppercase tracking-wider mt-1">{m.label}</p>
+                    </div>
+                    <div className="md:col-span-5">
+                      <p className="text-stone-300 text-sm">{m.cards}</p>
+                    </div>
+                    <div className="md:col-span-4">
+                      <p className="text-xs text-stone-500 italic">{m.next}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Starter Cards */}
+          <section>
+            <div className="flex items-baseline gap-4 mb-6">
+              <span className="text-amber-300 font-serif text-xl italic">03</span>
+              <h3 className="text-stone-200 text-lg uppercase tracking-[0.3em] font-light">처음 받을 카드 추천</h3>
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              {STARTER_CARDS.map((c) => (
+                <div key={c.name} className="border border-stone-800 bg-stone-900/20 p-6 rounded-sm relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1 h-full" style={{ background: c.color }} />
+                  <h4 className="font-serif text-xl text-stone-100 mb-1">{c.name}</h4>
+                  <p className="text-xs text-stone-500 italic mb-4">"{c.why}"</p>
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest text-stone-600 mb-1">연회비</p>
+                      <p className="text-stone-200 font-serif text-lg">{c.fee}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest text-stone-600 mb-1">보증금</p>
+                      <p className="text-stone-200 font-serif text-lg">{c.deposit}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2 border-t border-stone-800 pt-4">
+                    <div className="flex gap-2 text-sm">
+                      <span className="text-amber-400/60 font-serif flex-shrink-0">·</span>
+                      <span className="text-stone-400">{c.earn}</span>
+                    </div>
+                    <div className="flex gap-2 text-sm">
+                      <span className="text-amber-400/60 font-serif flex-shrink-0">·</span>
+                      <span className="text-stone-400">{c.highlight}</span>
+                    </div>
+                    <div className="flex gap-2 text-xs">
+                      <span className="text-amber-400/60 font-serif flex-shrink-0">·</span>
+                      <span className="text-stone-500 italic">{c.timeline}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Timeline */}
+          <section>
+            <div className="flex items-baseline gap-4 mb-8">
+              <span className="text-amber-300 font-serif text-xl italic">04</span>
+              <h3 className="text-stone-200 text-lg uppercase tracking-[0.3em] font-light">제로에서 포인트 게임까지 — 타임라인</h3>
+            </div>
+            <div className="relative">
+              <div className="absolute left-[88px] top-0 bottom-0 w-px bg-stone-800 hidden md:block" />
+              <div className="space-y-0">
+                {CREDIT_TIMELINE.map((phase, i) => (
+                  <div key={phase.month} className="md:grid md:grid-cols-12 gap-8 mb-0">
+                    <div className="md:col-span-2 flex md:flex-col md:items-end md:text-right pb-2 md:pb-0 md:pt-5">
+                      <div className="hidden md:block">
+                        <p className="text-[10px] uppercase tracking-widest text-stone-600 mb-1">{phase.month}</p>
+                        <div className="w-3 h-3 rounded-full border-2 ml-auto" style={{ borderColor: phase.color, background: phase.color + "40" }} />
+                      </div>
+                      <p className="text-xs text-stone-500 md:hidden">{phase.month}</p>
+                    </div>
+                    <div className={`md:col-span-10 pb-8 md:pl-8 border-b border-stone-900 ${i === CREDIT_TIMELINE.length - 1 ? "border-b-0" : ""}`}>
+                      <p className="font-serif text-xl mb-4" style={{ color: phase.color }}>{phase.phase}</p>
+                      <ul className="space-y-2">
+                        {phase.actions.map((a, j) => (
+                          <li key={j} className="flex gap-3 text-stone-400 text-sm">
+                            <span className="font-serif text-amber-400/50 flex-shrink-0">·</span>
+                            {a}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* CTA */}
+            <div className="mt-10 border border-amber-700/30 bg-amber-950/20 p-6 flex items-center justify-between">
+              <div>
+                <p className="font-serif text-xl text-amber-200 mb-1">크레딧 700+ 달성했나요?</p>
+                <p className="text-stone-400 text-sm">이제 Discover 탭에서 첫 리워드 카드를 찾아보세요.</p>
+              </div>
+              <ChevronRight className="text-amber-400 flex-shrink-0" size={24} />
+            </div>
+          </section>
+
+        </div>
+      )}
 
       {/* § I. Strategy Plays */}
       {view === "plays" && (
