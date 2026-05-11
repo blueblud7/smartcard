@@ -216,7 +216,7 @@ const CARDS = [
   {
     id: "bilt",
     name: "Bilt Blue",
-    issuer: "Wells Fargo",
+    issuer: "Cardless",
     network: "Mastercard",
     annualFee: 0,
     bonus: 100,
